@@ -33,6 +33,18 @@ DB_USERNAME=postgres
 DB_PASSWORD=password
 
 OCTANE_SERVER=frankenphp
+
+QUEUE_CONNECTION=redis
+QUEUE_DRIVER=redis
+
+MAIL_MAILER=log
+MAIL_SCHEME=null
+MAIL_HOST=127.0.0.1
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
 ```
 
 4. Install dependencies using Docker:
@@ -120,6 +132,9 @@ The application will be available at:
 - Run npm commands: `./vendor/bin/sail npm <command>`
 - Access PostgreSQL: `./vendor/bin/sail psql`
 - Access Redis CLI: `./vendor/bin/sail redis`
+- Start queue worker: `./vendor/bin/sail artisan queue:work`
+- Start queue worker in background: `./vendor/bin/sail artisan queue:work --daemon`
+- Monitor queues: `./vendor/bin/sail artisan queue:monitor`
 
 ### Manual
 
@@ -128,6 +143,9 @@ The application will be available at:
 - Run tests: `php artisan test`
 - Clear cache: `php artisan cache:clear`
 - Clear config: `php artisan config:clear`
+- Start queue worker: `php artisan queue:work`
+- Start queue worker in background: `nohup php artisan queue:work --daemon &`
+- Monitor queues: `php artisan queue:monitor`
 
 ## Troubleshooting
 
