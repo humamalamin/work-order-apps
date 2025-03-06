@@ -3,16 +3,22 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use Althinect\FilamentSpatieRolesPermissions\Concerns\HasSuperAdmin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
     use Notifiable;
+    use HasRoles;
+    use HasSuperAdmin;
 
     /**
      * The attributes that are mass assignable.
@@ -23,7 +29,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role_id',
     ];
 
     /**
@@ -49,23 +54,18 @@ class User extends Authenticatable
         ];
     }
 
-    public function role(): BelongsTo
+    public function roles(): BelongsToMany
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id');
     }
 
-    public function isOperator()
+    public function isSuperAdmin(): bool
     {
-        return $this->role->name == 'Operator';
+        return $this->hasRole('Super Admin');
     }
 
-    public function isPm()
+    public function isOperator(): bool
     {
-        return $this->role->name == 'Project Manager';
-    }
-
-    public function isSuperAdmin()
-    {
-        return $this->role->name == 'Super Admin';
+        return $this->hasRole('operator');
     }
 }

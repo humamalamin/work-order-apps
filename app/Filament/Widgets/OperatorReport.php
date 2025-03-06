@@ -22,7 +22,7 @@ class OperatorReport extends BaseWidget
     public function getTableQuery(): Builder
     {
         $query = WorkOrder::query();
-        if (Auth::user()->isOperator()) {
+        if (Auth::user()->hasRole('operator')) {
             $query = $query->where("assigned_operator_id", Auth::user()->id);
         }
         return $query

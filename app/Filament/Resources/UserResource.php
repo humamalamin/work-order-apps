@@ -10,6 +10,8 @@ use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Pages\Page;
+use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -38,12 +40,12 @@ class UserResource extends Resource
                     ->maxLength(100),
                 TextInput::make('password')
                     ->label(__('Password'))
-                    ->required()
+                    ->required(fn (Page $livewire): bool => $livewire instanceof CreateRecord)
                     ->password()
                     ->maxLength(100),
-                Select::make('role_id')
-                    ->label(__('Role'))
-                    ->relationship('role', 'name')
+                Select::make('roles')
+                    ->relationship('roles', 'name')
+                    ->preload()
                     ->required(),
             ]);
     }
@@ -56,7 +58,7 @@ class UserResource extends Resource
                     ->label(__('Name')),
                 TextColumn::make('email')
                     ->label(__('Email')),
-                TextColumn::make('role.name')
+                TextColumn::make('roles.name')
                     ->label(__('Role')),
             ])
             ->filters([
@@ -90,8 +92,10 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $admin =  Role::where('name', 'Super Admin')->get()->pluck('id');
+        $admin =  User::whereHas('roles', function ($query) {
+            $query->where('name', 'Super Admin');
+        })->get()->pluck('id');
 
-        return parent::getEloquentQuery()->whereNotIn('role_id', $admin);
+        return parent::getEloquentQuery()->whereNotIn('id', $admin);
     }
 }

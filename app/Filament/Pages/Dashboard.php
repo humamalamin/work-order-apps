@@ -22,7 +22,7 @@ class Dashboard extends \Filament\Pages\Dashboard
             OperatorReport::class,
         ];
 
-        if (!Auth::user()->isOperator()) {
+        if (Auth::user()->can('view all report')) {
             $widgets[] = WorkOrderReport::class;
         }
         return $widgets;
@@ -31,7 +31,7 @@ class Dashboard extends \Filament\Pages\Dashboard
     public function getColumns(): int
     {
         $column = 1;
-        if (!Auth::user()->isOperator()) {
+        if (Auth::user()->can('view all report')) {
             $column = 2;
         }
         return $column;

@@ -21,7 +21,7 @@ class WorkOrderPolicy
      */
     public function view(User $user, WorkOrder $workOrder): bool
     {
-        return $user->isPm() || $user->isSuperAdmin() || $workOrder->assigned_operator_id == $user->id;
+        return $user->hasRole('project manager') || $user->isSuperAdmin() || $workOrder->assigned_operator_id == $user->id;
     }
 
     /**
@@ -29,7 +29,7 @@ class WorkOrderPolicy
      */
     public function create(User $user): bool
     {
-        return $user->isPm() || $user->isSuperAdmin();
+        return $user->hasRole('project manager') || $user->isSuperAdmin();
     }
 
     /**
@@ -37,7 +37,7 @@ class WorkOrderPolicy
      */
     public function update(User $user, WorkOrder $workOrder): bool
     {
-        return $user->isPm() || $user->isSuperAdmin();
+        return $user->hasRole('project manager') || $user->isSuperAdmin();
     }
 
     /**
@@ -45,7 +45,7 @@ class WorkOrderPolicy
      */
     public function delete(User $user, WorkOrder $workOrder): bool
     {
-        return $user->isPm() || $user->isSuperAdmin();
+        return $user->hasRole('project manager') || $user->isSuperAdmin();
     }
 
     /**
@@ -61,6 +61,6 @@ class WorkOrderPolicy
      */
     public function forceDelete(User $user, WorkOrder $workOrder): bool
     {
-        return $user->isPm() || $user->isSuperAdmin();
+        return $user->hasRole('project manager') || $user->isSuperAdmin();
     }
 }
