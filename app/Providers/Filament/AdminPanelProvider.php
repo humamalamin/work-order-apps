@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use Althinect\FilamentSpatieRolesPermissions\FilamentSpatieRolesPermissionsPlugin;
+use Althinect\FilamentSpatieRolesPermissions\Resources\PermissionResource;
 use App\Filament\Resources\RoleResource;
 use App\Filament\Resources\UserResource;
 use App\Filament\Resources\WorkOrderResource;
@@ -41,6 +43,7 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
+            ->plugin(FilamentSpatieRolesPermissionsPlugin::make())
             ->databaseTransactions()
             ->sidebarCollapsibleOnDesktop(true)
             ->databaseNotifications()
@@ -86,7 +89,7 @@ class AdminPanelProvider extends PanelProvider
                             NavigationItem::make('User')
                                 ->icon('heroicon-o-users')
                                 ->url(url: fn (): string => UserResource::getUrl())
-                                ->visible(fn (): bool => Auth::user()->isSuperAdmin() || Auth::user()->isPm())
+                                ->visible()
                                 ->isActiveWhen(fn () => request()->routeIs('filament.admin.resources.users.index')),
                         ]),
                     NavigationGroup::make(__('Settings'))
@@ -95,7 +98,12 @@ class AdminPanelProvider extends PanelProvider
                                 ->icon('heroicon-o-lock-closed')
                                 ->url(fn (): string => RoleResource::getUrl())
                                 ->isActiveWhen(fn () => request()->routeIs('filament.admin.resources.roles.index'))
-                                ->visible(fn (): bool => Auth::user()->isSuperAdmin()),
+                                ->visible(fn (): bool => Auth::user()->hasRole('Super Admin')),
+                            NavigationItem::make(__('Permission'))
+                                ->icon('heroicon-o-shield-exclamation')
+                                ->url(fn (): string => PermissionResource::getUrl())
+                                ->isActiveWhen(fn () => request()->routeIs('filament.admin.resources.permissions.index'))
+                                ->visible(fn (): bool => Auth::user()->hasRole('Super Admin')),
                         ]),
                 ]);
 

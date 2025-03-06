@@ -64,7 +64,7 @@ class WorkOrderResource extends Resource
                     ->required(),
                 Select::make('assigned_operator_id')
                     ->label(__('Assigned Operator'))
-                    ->relationship('assignedOperator', 'name', fn (Builder $query) => $query->where('role_id', 2))
+                    ->relationship('assignedOperator', 'name')
                     ->required(),
             ]);
     }
@@ -111,7 +111,7 @@ class WorkOrderResource extends Resource
                     ])
                     ->attribute('status'),
                 SelectFilter::make('assignedOperator')
-                    ->relationship('assignedOperator', 'name', fn (Builder $query) => $query->Where('role_id', 1))
+                    ->relationship('assignedOperator', 'name')
                     ->searchable()
                     ->preload(),
                 Filter::make('deadline')
@@ -147,7 +147,7 @@ class WorkOrderResource extends Resource
                                 'Completed' => 'Completed',
                             ];
 
-                            if (Auth::user()->isPm()) {
+                            if (Auth::user()->can('cancel work order')) {
                                 $statusOptions['Canceled'] = 'Canceled';
                             }
 
@@ -164,16 +164,18 @@ class WorkOrderResource extends Resource
                                     ->label(__('Status Notes')),
                             ];
                         })
+                        ->visible(fn (): bool => Auth::user()->can('update status'))
                         ->action(function (array $data, WorkOrder $record) {
-                            if ($record->status === 'Pending' && $data['status'] !== 'In Progress') {
-                                throw new \Exception('Status hanya bisa diubah ke In Progress.');
-                            }
-                            if ($record->status === 'In Progress' && !in_array($data['status'], ['Completed', 'Canceled'])) {
-                                throw new \Exception('Status hanya bisa diubah ke Completed atau Canceled.');
+                            if ($data['status'] === 'Canceled' && !Auth::user()->can('cancel work order')) {
+                                throw new \Exception('Hanya Production Manager yang bisa membatalkan work order.');
                             }
 
-                            if ($data['status'] === 'Canceled' && !Auth::user()->isPm()) {
-                                throw new \Exception('Hanya Production Manager yang bisa membatalkan work order.');
+                            if ($record->status === 'Pending' && $data['status'] !== 'In Progress' && Auth::user()->hasRole('operator')) {
+                                throw new \Exception('Status hanya bisa diubah ke In Progress.');
+                            }
+
+                            if ($record->status === 'In Progress' && !in_array($data['status'], ['Completed', 'Canceled']) && Auth::user()->hasRole('operator')) {
+                                throw new \Exception('Status hanya bisa diubah ke Completed atau Canceled.');
                             }
 
                             $now = Carbon::now();
@@ -205,10 +207,10 @@ class WorkOrderResource extends Resource
 
                             $record->productionLogs()->create($logData);
 
-                            $pm = Auth::user()->isPm() ? Auth::user() : User::find($record->created_by_id);
+                            $pm = Auth::user()->hasRole('project manager') ? Auth::user() : User::find($record->created_by_id);
                             FacadesNotification::send($pm, new UpdateStatusPmNotification($record));
 
-                            $operator = Auth::user()->isOperator() ? Auth::user() : User::find($record->assigned_operator_id);
+                            $operator = Auth::user()->hasRole('operator') ? Auth::user() : User::find($record->assigned_operator_id);
                             FacadesNotification::send($operator, new UpdateStatusOperatorNotification($record));
 
                             Notification::make()
@@ -244,7 +246,7 @@ class WorkOrderResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        if (Auth::user()->isOperator()) {
+        if (Auth::user()->hasRole('operator')) {
             return parent::getEloquentQuery()->where('assigned_operator_id', Auth::user()->id);
         }
 

@@ -27,7 +27,10 @@ class WorkOrder extends Model
 
     public function assignedOperator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assigned_operator_id');
+        return $this->belongsTo(User::class, 'assigned_operator_id')
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'operator');
+            });
     }
 
     public function productionLogs(): HasMany

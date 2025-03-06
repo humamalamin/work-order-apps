@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class AdminSeeder extends Seeder
 {
@@ -16,13 +17,18 @@ class AdminSeeder extends Seeder
     {
         $password = bcrypt('qwerty12345');
         $adminRole = Role::where("name", 'Super Admin')->first()->id;
-        User::firstOrCreate(
+        $user = User::firstOrCreate(
             ['email' => 'superadmin@mail.com'],
             [
                 'name' => 'Super Admin',
                 'password' => $password,
-                'role_id' => $adminRole,
             ]
         );
+
+        DB::table('model_has_roles')->insert([
+            'role_id'    => $adminRole,
+            'model_id'   => $user->id,
+            'model_type' => User::class,
+        ]);
     }
 }

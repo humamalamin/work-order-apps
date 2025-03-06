@@ -22,14 +22,17 @@ class RoleSeeder extends Seeder
         Role::insertOrIgnore([
             array_merge($timestamps, [
                 'name' => 'Super Admin',
+                'guard_name' => 'web',
                 'id' => 1
             ]),
             array_merge($timestamps, [
-                'name' => 'Operator',
+                'name' => 'operator',
+                'guard_name' => 'web',
                 'id' => 2
             ]),
             array_merge($timestamps, [
-                'name' => 'Project Manager',
+                'name' => 'project manager',
+                'guard_name' => 'web',
                 'id' => 3
             ]),
         ]);
